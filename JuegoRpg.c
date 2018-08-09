@@ -51,6 +51,11 @@ typedef struct {
     int factorDeAtaque;
 } Enemigo;
 
+typedef struct {
+    int precio;
+    int curacion;
+} Pocion;
+
 void iniciarPersonaje(Personaje *personajeCreado) {
     (*personajeCreado).codigo = buscarCodigo();
     (*personajeCreado).puntosDeVida = 100;
@@ -105,10 +110,24 @@ void menuPrincipal(Personaje *personajeUsado) {
                 opcion = 0;
                 break;
             case 2:
-                //menuTienda();
+                menuTienda(&(*personajeUsado));
+                opcion = 0;
                 break;
             case 3:
-                //menudormir();
+                //Menu dormir
+                printf("\n\t\t\tDORMIR\n");
+                printf("Verificando si cuenta con el oro suficiente.........................\n");
+                if ((*personajeUsado).oro >= 30) {
+                    printf("Cuenta con el oro suficiente, se le restara 30 de %d", (*personajeUsado).oro);
+                    (*personajeUsado).oro -= 30;
+                    (*personajeUsado).puntosDeMana = (10 * ((*personajeUsado).nivel + 1));
+                    (*personajeUsado).puntosDeVida = (100 * ((*personajeUsado).nivel + 1));
+                    guardarCambiosDePersonaje(&(*personajeUsado));
+                    printf("    ");
+                } else {
+                    printf("No cuenta con el oro suficiente");
+                }
+                opcion = 0;
                 break;
             case 4:
                 mostrarStatusDelPersonaje(&(*personajeUsado));
@@ -164,6 +183,11 @@ void informacionDeJugadores(Personaje *personajeActual, Enemigo *enemigoActual) 
 
 void accionDePersonajeEnBatalla(Personaje *personajeActual, Enemigo *enemigoActual) {
     int opcion;
+    int opcinoMiedo = 0;
+    int tipoDePocion;
+    int vidaMaxima = (((*personajeActual).nivel + 1)*100);
+    int puntosDeManaMaximos = (((*personajeActual).nivel + 1)*10);
+
 
     informacionDeJugadores(&(*personajeActual), &(*enemigoActual));
     printf("\n--------------------->ES SU TURNO\n");
@@ -182,10 +206,106 @@ void accionDePersonajeEnBatalla(Personaje *personajeActual, Enemigo *enemigoActu
                 (*enemigoActual).puntosDeVida -= ataque;
                 break;
             case 2:
+                printf("\nVerificando puntos de mana.................................\n");
+                if ((*personajeActual).puntosDeMana > 0) {
+                    printf("\nCurando...................................................");
+                    (*personajeActual).puntosDeMana--;
+                    int curacion = (((*personajeActual).nivel + 1)*5 + numeroAleatorio(15, 25));
+                    printf("La curacion es de:%d\n", curacion);
+                    int vidaNueva = curacion + (*personajeActual).puntosDeVida;
+                    int limiteDeVida = (100 * ((*personajeActual).nivel + 1));
+                    printf("VIDA NUEVA..%d\n..LIMITE...%d", vidaNueva, limiteDeVida);
+                    if (vidaNueva > limiteDeVida) {
+                        (*personajeActual).puntosDeVida = limiteDeVida;
+                    } else {
+                        (*personajeActual).puntosDeVida += curacion;
+                    }
+                } else {
+                    printf("No cuenta con suficientes puntos de mana");
+                }
                 break;
             case 3:
+                printf("Pociones que posee actualmente.........\n");
+                printf("1)Potion +25HP:%d\n", (*personajeActual).cantidadDePotion);
+                printf("2)HiPotion +75Hp:%d\n", (*personajeActual).cantidadDeHiPotion);
+                printf("3)MPotion +10MP:%d\n", (*personajeActual).cantidadDeMPotion);
+                printf("n)Salir sin comprar pocion(Perdera su turno)\n");
+                scanf("%d", &tipoDePocion);
+                printf("Vida maxima:%d\n", vidaMaxima);
+                switch (tipoDePocion) {
+
+                    case 1:
+                        if ((*personajeActual).cantidadDePotion > 0) {
+                            if ((*personajeActual).puntosDeVida + 25 > vidaMaxima) {
+                                (*personajeActual).puntosDeVida = vidaMaxima;
+                                printf("Vida actual:%d\n", (*personajeActual).puntosDeVida);
+                                printf("Vida maxima:%d\n", vidaMaxima);
+                            } else {
+                                printf("Vida actual:%d\n", (*personajeActual).puntosDeVida);
+                                (*personajeActual).puntosDeVida += 25;
+                                printf("Vida luego de sumar la pocion:%d\n", (*personajeActual).puntosDeVida);
+
+                            }
+                            (*personajeActual).cantidadDePotion--;
+                            printf("Se ha aplicado la pocion\n");
+                        } else {
+                            printf("Ya no cuenta con pociones de este tipo\n");
+                        }
+                        break;
+                    case 2:
+                        if ((*personajeActual).cantidadDeHiPotion > 0) {
+                            if ((*personajeActual).puntosDeVida + 75 > vidaMaxima) {
+                                (*personajeActual).puntosDeVida = vidaMaxima;
+                                printf("Vida actual:%d\n", (*personajeActual).puntosDeVida);
+                                printf("Vida maxima:%d\n", vidaMaxima);
+                            } else {
+                                printf("Vida actual:%d\n", (*personajeActual).puntosDeVida);
+                                (*personajeActual).puntosDeVida += 75;
+                                printf("Vida luego de sumar la pocion:%d\n", (*personajeActual).puntosDeVida);
+
+                            }
+                            (*personajeActual).cantidadDeHiPotion--;
+                            printf("Se ha aplicado la pocion\n");
+
+                        } else {
+                            printf("Ya no cuenta con pociones de este tipo\n");
+                        }
+                        break;
+                    case 3:
+                        if ((*personajeActual).cantidadDeMPotion > 0) {
+                            if ((*personajeActual).puntosDeMana + 10 > puntosDeManaMaximos) {
+                                (*personajeActual).puntosDeMana = puntosDeManaMaximos;
+                                printf("Mana actual:%d\n", (*personajeActual).puntosDeMana);
+                                printf("Mana maxima:%d\n", puntosDeManaMaximos);
+
+                            } else {
+                                printf("Mana Actual:%d\n", (*personajeActual).puntosDeMana);
+                                (*personajeActual).puntosDeMana += 10;
+                                printf("Manaluego de sumar la pocion:%d\n", (*personajeActual).puntosDeMana);
+                            }
+                            (*personajeActual).cantidadDeMPotion--;
+                            printf("Se ha aplicado la pocion\n");
+                        } else {
+                            printf("Ya no cuenta con pociones de este tipo\n");
+                        }
+                        break;
+                    default:
+                        printf("................................................");
+                        break;
+                }
                 break;
             case 4:
+                printf("Tengo Miedo................");
+                printf("Verificando cantidad de oro..............");
+                int cantidadDeOro = ((*personajeActual).nivel + numeroAleatorio(5, 10));
+                if (cantidadDeOro <= (*personajeActual).oro) {
+                    printf("Para abandonar la partida necesita:%d\n Cuenta con:%d", cantidadDeOro, (*personajeActual).oro);
+                    (*personajeActual).oro -= cantidadDeOro;
+                    guardarCambiosDePersonaje(&(*personajeActual));
+                    opcinoMiedo = 1;
+                } else {
+                    printf("No cuenta con el oro suficiente");
+                }
                 break;
             default:
                 printf("ORDEN NO ENCONTRADA PRUEBE DE NUEVO\n");
@@ -193,20 +313,32 @@ void accionDePersonajeEnBatalla(Personaje *personajeActual, Enemigo *enemigoActu
                 break;
         }
     } while (opcion == 0);
-    if ((*enemigoActual).puntosDeVida > 0) {
-        accionDeEnemigoEnBatalla(&(*personajeActual), &(*enemigoActual));
+    if (opcinoMiedo == 1) {
+        menuPrincipal(&(*personajeActual));
     } else {
-        printf("\n\n\t\t\tFELICIDADES HA GANADO LA BATALLA\n");
-        (*personajeActual).cantidadDeVictorias++;
-        (*personajeActual).experiencia = numeroAleatorio(2, 5)*(*enemigoActual).factorDeAtaque;
-        (*personajeActual).oro = numeroAleatorio(5, 15)*(*enemigoActual).factorDeAtaque;
-        //Asignar experiencia experiencia/50+1=nivel
-        int division=(*personajeActual).experiencia/50;
-        (*personajeActual).nivel=division+1;
-        
-        guardarCambiosDePersonaje(&(*personajeActual));
-        //Se le coloca todo lo que implica que gane la batalla, y guardar los datos en archivo
+        if ((*enemigoActual).puntosDeVida > 0) {
+            accionDeEnemigoEnBatalla(&(*personajeActual), &(*enemigoActual));
+        } else {
+            printf("\n\n\t\t\tFELICIDADES HA GANADO LA BATALLA\n");
+            (*personajeActual).cantidadDeVictorias++;
+            (*personajeActual).experiencia += (numeroAleatorio(2, 5))*((*enemigoActual).factorDeAtaque);
+            (*personajeActual).oro += (numeroAleatorio(5, 15))*((*enemigoActual).factorDeAtaque);
+            //Asignar experiencia experiencia/50+1=nivel
+            int division = (*personajeActual).experiencia / 50;
+            (*personajeActual).nivel = division + 1; //quitarle el 1
+            //Componer o de la experiencia
+
+            printf("\n===========================HAS RECIBIDO==============================\n");
+            printf("Nueva Exeriencia>>>>>>>>%d\n", (*personajeActual).experiencia);
+            printf("Oro>>>>>>>>>>>>>>>>>>>>>%d\n", (*personajeActual).oro);
+            printf("Nivel>>>>>>>>>>>>>>>>>>>%d\n", (*personajeActual).nivel);
+
+            guardarCambiosDePersonaje(&(*personajeActual));
+            //Se le coloca todo lo que implica que gane la batalla, y guardar los datos en archivo
+        }
     }
+
+
 }
 
 void accionDeEnemigoEnBatalla(Personaje *personajeActual, Enemigo *enemigoActual) {
@@ -234,9 +366,9 @@ void accionDeEnemigoEnBatalla(Personaje *personajeActual, Enemigo *enemigoActual
 Enemigo buscarEnemigo() {
     int numero = generarNumeroAleatorio();
     //nombre, codigo, puntos de vida,factor de ataque 
-    Enemigo enemigo1 = {"Dark Wolf", 1, 30, 10};
-    Enemigo enemigo2 = {"Dragon", 2, 25, 15};
-    Enemigo enemigo3 = {"Mighty Golem", 3, 40, 25};
+    Enemigo enemigo1 = {"Dark Wolf", 1, 50, 10};
+    Enemigo enemigo2 = {"Dragon", 2, 100, 15};
+    Enemigo enemigo3 = {"Mighty Golem", 3, 150, 25};
 
     if (numero <= 4) {
         return enemigo1;
@@ -264,6 +396,61 @@ int menuALaCarga(Personaje *personajeActual) {
 
 
 }
+
+void menuTienda(Personaje *personajeActual) {
+    int tipoDePocion;
+    printf("\n\t\t\t\tMENU TIENDA\n");
+    printf("Puede comprobar si puede comprar una pocion solamente seleccionandola\n");
+    printf("1)Potion....50 oro cura 25 HP\n");
+    printf("2)Hi-Potion...100 oro cura 75 HP\n");
+    printf("3)M Potion....75 oro recupera 10MP\n ");
+    scanf("%d", &tipoDePocion);
+    do {
+        switch (tipoDePocion) {
+            case 1:
+                if ((*personajeActual).oro >= 50) {
+                    printf("Asignando la posion..............\n");
+                    printf("POSION ASIGNADA\n");
+                    (*personajeActual).cantidadDePotion++;
+                    (*personajeActual).oro -= 50;
+                } else {
+                    printf("No cuenta con el dinero suficiente para comprar la posion:%d \n", (*personajeActual).oro);
+                }
+                break;
+            case 2:
+                if ((*personajeActual).oro >= 100) {
+                    printf("Asignando la posion..............\n");
+                    printf("POSION ASIGNADA\n");
+                    (*personajeActual).cantidadDeHiPotion++;
+                    (*personajeActual).oro -= 100;
+
+                } else {
+                    printf("No cuenta con el dinero suficiente para comprar la posion:%d \n", (*personajeActual).oro);
+                }
+                break;
+            case 3:
+                if ((*personajeActual).oro >= 75) {
+                    printf("Asignando la posion..............\n");
+                    printf("POSION ASIGNADA\n");
+                    (*personajeActual).cantidadDeMPotion++;
+                    (*personajeActual).oro -= 75;
+
+                } else {
+                    printf("No cuenta con el dinero suficiente para comprar la posion:%d \n", (*personajeActual).oro);
+                }
+                break;
+            default:
+                printf("No se ha encontrado la opcion para esta pocion");
+                break;
+        }
+        printf("Desea comprar una nueva pocion??? precione 0\n");
+        scanf("%d", &tipoDePocion);
+    } while (tipoDePocion == 0);
+    guardarCambiosDePersonaje(&(*personajeActual));
+
+
+}
+
 
 //Funcones para trabajar con el personaje
 
